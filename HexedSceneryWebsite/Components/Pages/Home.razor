@@ -1,0 +1,35 @@
+﻿@page "/"
+@using HexedSceneryCommon.Main;
+@using HexedSceneryWebsite.Services;
+
+@inject IImageService _imageService;
+
+<PageTitle>Hexed Scenery</PageTitle>
+<div class="background-paper">
+    <svg>
+        <filter id="wavy2">
+            <feTurbulence x="0" y="0" baseFrequency="0.02" numOctaves="5" seed="1"></feTurbulence>
+            <feDisplacementMap in="SourceGraphic" scale="20" />
+        </filter>
+    </svg>
+</div>
+<div class="image-gallery">
+    @if (Images != null)
+    {
+        <div class="container">
+            @foreach (var image in Images)
+            {
+                <HexedSceneryWebsite.Components.ImageCard ImageDetails="@image" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Image> Images { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Images = _imageService.GetImages();
+    }
+}
