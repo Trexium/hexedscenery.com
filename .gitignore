@@ -1,0 +1,13 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/HexedSceneryCommon/bin
+/HexedSceneryCommon/obj
+/HexedSceneryData/bin
+/HexedSceneryData/obj
+/HexedSceneryWebsite/bin
+/HexedSceneryWebsite/obj
+*.user
+/HexedSceneryWebsite/appsettings.Production.json
