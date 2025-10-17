@@ -6,19 +6,24 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using MudBlazor.Services;
+using HexedSceneryWebsite;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-builder.Services.AddControllers().AddJsonOptions(options => {
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 
 
     // In addition, you can limit the depth
     // options.MaxDepth = 4;
 });
+
+builder.Services.AddMudServices();
 
 //builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options => options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 builder.Services.AddDbContext<HexedSceneryData.Data.HexedSceneryContext>(options =>
@@ -40,6 +45,17 @@ builder.Services.AddTransient<IApiKeyValidator>(sp =>
     var test = builder.Configuration.GetSection("ApiKeys").Get<string[]>();
     var validator = new ApiKeyValidator(builder.Configuration.GetSection("ApiKeys").Get<string[]>());
     return validator;
+});
+builder.Services.AddTransient<SMTPInfo>(sp =>
+{
+    var smtpInfo = new SMTPInfo
+    {
+        Host = builder.Configuration.GetSection("SMTP-Host").Get<string>(),
+        Username = builder.Configuration.GetSection("SMTP-user").Get<string>(),
+        Password = builder.Configuration.GetSection("SMTP-pass").Get<string>(),
+        Recipient = builder.Configuration.GetSection("Mordheim-email").Get<string>()
+    };
+    return smtpInfo;
 });
 builder.Services.AddScoped<ApiKeyAuthorizationFilter>();
 
