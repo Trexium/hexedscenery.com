@@ -3,6 +3,10 @@
 @inherits LayoutComponentBase
 @implements IErrorComponent
 @inject NavigationManager navigationManager
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 <PageTitle>HexedSceneryWebsite</PageTitle>
 
 <div class="page">
@@ -33,7 +37,7 @@
         </CascadingValue>
     </main>
 </div>
-
+<script src="_content/MudBlazor/MudBlazor.min.js"></script>
 
 @code 
 {

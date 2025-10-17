@@ -1,8 +1,13 @@
 ﻿@page "/"
 @using HexedSceneryCommon.Main;
 @using HexedSceneryWebsite.Services;
+@using System.Text.RegularExpressions
+@using System.Net.Mail
+@using System.Net
 
 @inject IImageService _imageService;
+@inject ISnackbar Snackbar
+@inject SMTPInfo SmtpInfo
 
 <PageTitle>Hexed Scenery</PageTitle>
 <div class="background-paper">
@@ -13,7 +18,7 @@
         </filter>
     </svg>
 </div>
-<div class="image-gallery">
+@* <div class="image-gallery">
     @if (Images != null)
     {
         <div class="container">
@@ -23,13 +28,100 @@
             }
         </div>
     }
-</div>
+</div> *@
+
+<MudStack Justify="Justify.Center" AlignItems="AlignItems.Center" Class="pa-5">
+    <MudSpacer /><MudSpacer /><MudSpacer /><MudSpacer />
+    <MudImage Src="/images/hs_logo_alpha.png" Fluid="true" Width="300" Elevation="0" />
+    <MudText Typo="Typo.h4">
+        Looking for Android-users for Beta test!
+    </MudText>
+    <MudText Typo="Typo.body1" Style="max-width:600px;">
+        The HexedScenery Mordheim website has been made in to an app for Android.<br />
+        For now atleast it's called "HexedScenery Mordheim Helper", name suggstions would be appriciated.<br />
+        (An iOS release will be depending on the success of the Android release.)<br />
+        Its been tested i my own playgroup, bugs have been fixed and now i need a wider test group. <br />
+        So will you answer the call?<br />
+        Sign up now and every account that is admitted to the testgroup will get the app for free on release.
+    </MudText>
+    <MudForm @ref="_form" Style="border-width: 1px; border-radius:25px;" Class="pa-5">
+        <MudText Typo="Typo.h5">Apply for Android Beta-test</MudText>
+        <MudTextField @bind-Text="_name" T="string" Required Label="Name" />
+        <MudTextField @bind-Text="_contactEmail" T="string" InputMode="InputMode.email" Required Label="Contact e-mail" />
+        <MudTextField @bind-Text="_googleEmail" T="string" InputMode="InputMode.email" Required Label="Google account e-mail" />
+        <MudTextField @bind-Text="_message" T="string" Label="Comments/Message" Lines="8" />
+        <MudButton OnClick="SendMail" EndIcon="@Icons.Material.Filled.Send">Send</MudButton>
+    </MudForm>
+    <MudSpacer />
+</MudStack>
 
 @code {
     private List<Image> Images { get; set; }
 
+    private MudForm _form;
+
+    private string _name;
+    private string _contactEmail;
+    private string _googleEmail;
+    private string _message;
+
     protected override async Task OnInitializedAsync()
     {
         Images = _imageService.GetImages();
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomStart;
+    }
+
+    private async void SendMail()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            try
+            {
+                SmtpClient client = new SmtpClient(SmtpInfo.Host);
+                client.Port = 587;
+                client.EnableSsl = true;
+                client.UseDefaultCredentials = false;
+                client.Credentials = new NetworkCredential(SmtpInfo.Username, SmtpInfo.Password);
+
+                MailMessage message = new MailMessage(SmtpInfo.Username, SmtpInfo.Recipient);
+                message.Body = $"Name: {StripHTML(_name)}{Environment.NewLine}Contact e-mail: {StripHTML(_contactEmail)}{Environment.NewLine}Google e-mail: {StripHTML(_googleEmail)}{Environment.NewLine}Message:{Environment.NewLine}{StripHTML(_message)}";
+                message.Subject = $"Beta test application - {StripHTML(_name)}";
+
+                client.Send(message);
+
+                Snackbar.Add(
+                    @<div>
+    Awesome!<br />
+    Your application has been sent to me.<br />
+    I will read it and get back to you.<br />
+    <br />
+    Best regards<br />
+    Emil Gilljam
+</div>
+                    , Severity.Success, c =>
+                {
+                    c.SnackbarVariant = Variant.Filled;
+                });
+                _name = string.Empty;
+                _contactEmail = string.Empty;
+                _googleEmail = string.Empty;
+                _message = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add("Something went wrong, please try again.", Severity.Error, c => c.SnackbarVariant = Variant.Filled);
+                
+            }
+            finally
+            {
+                await _form.ResetAsync();
+            }
+        }
+    }
+
+    private string StripHTML(string input)
+    {
+        return Regex.Replace(input, "<.*?>", String.Empty);
     }
 }
